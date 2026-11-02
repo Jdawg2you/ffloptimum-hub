@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Madness Leaderboard</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--black:#000;--panel:#121216;--panel2:#1b1b21;--line:#2d2d35;--red:#e8192c;--bright:#ff3345;--deep:#7a0c17;--peach:#ffb27a;--white:#fff;--muted:#b3b3bc}
+*{box-sizing:border-box}
+body{margin:0;background:var(--black);color:var(--white);font:500 16px/1.45 Archivo,system-ui,sans-serif;min-height:100vh;
+ background-image:radial-gradient(70% 420px at 50% -60px,var(--deep),transparent 100%),linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:100% 100%,48px 48px,48px 48px;background-repeat:no-repeat,repeat,repeat}
+main{max-width:860px;margin:0 auto;padding-block:40px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{margin:0;text-align:center;font-weight:900;font-size:clamp(36px,12vw,112px);line-height:1;letter-spacing:-.01em;text-transform:uppercase;
+ background:linear-gradient(#fff 20%,#ff5a68 95%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 22px rgba(232,25,44,.55))}
+.kicker{text-align:center;margin:0 0 8px;font-weight:700;font-size:18px;color:var(--white)}
+.sub{text-align:center;color:var(--peach);font-weight:700;margin:12px 0 28px}
+section{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;margin-bottom:20px}
+h2{margin:0 0 14px;font-size:22px;font-weight:900}
+h3{margin:18px 0 8px;font-size:16px;font-weight:700}
+label{display:block;font-size:14px;font-weight:600;color:var(--muted);margin-bottom:6px}
+input,select{width:100%;min-height:48px;background:var(--black);color:var(--white);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:600 17px Archivo,system-ui,sans-serif}
+input::placeholder{color:#74747e}
+:focus-visible{outline:3px solid var(--peach);outline-offset:2px}
+button{font:700 16px Archivo,system-ui,sans-serif;min-height:44px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--white);padding:8px 14px;cursor:pointer}
+button:hover{border-color:var(--muted)}
+button.primary{width:100%;min-height:54px;border:0;border-radius:999px;background:var(--red);font-size:18px;font-weight:900;box-shadow:0 0 24px rgba(232,25,44,.5)}
+button.primary:hover{background:var(--bright)}
+button.link{background:none;border:0;color:var(--muted);min-height:44px;padding:8px 4px;text-decoration:underline;font-weight:500}
+button.danger{color:var(--bright)}
+button[disabled]{opacity:.55;cursor:default}
+.grid{display:grid;gap:14px;grid-template-columns:1fr 1fr}
+.full{grid-column:1/-1}
+.names{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:14px}
+.names button[aria-pressed=true],.seg button[aria-pressed=true]{background:var(--red);border-color:var(--red)}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:6px;background:var(--black);border:1px solid var(--line);border-radius:12px;padding:4px}
+.seg button{border:0;background:none;min-height:40px}
+.preview{min-height:24px;margin:12px 0;color:var(--peach);font-weight:700}
+.msg{min-height:22px;margin:10px 0 0;font-weight:600;color:var(--peach)}
+.msg.err{color:#ff8a94}
+.who{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}
+.who strong{font-size:22px;font-weight:900}
+.note{color:var(--muted);font-size:14px;margin:12px 0 0}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 0}
+.nav strong{text-align:center;font-size:18px}
+.nav button{min-width:48px;font-size:20px}
+.rows{list-style:none;margin:0;padding:0}
+.rows li{display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;padding:14px 4px;border-top:1px solid var(--line)}
+.rows li:first-child{border-top:0}
+.rank{font-size:26px;font-weight:900;color:var(--muted);text-align:center}
+.rows li.lead .rank{color:var(--bright)}
+.name{font-size:20px;font-weight:700}
+.badge{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;background:var(--deep);color:#ffd0d4;font-size:13px;font-weight:700;vertical-align:2px}
+.meta{color:var(--muted);font-size:14px}
+.pts{text-align:right;font-size:26px;font-weight:900;font-variant-numeric:tabular-nums}
+.pts small{display:block;font-size:13px;color:var(--muted);font-weight:500}
+.total{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 12px;border-top:2px solid var(--red);padding-top:12px;font-weight:700}
+.total span{white-space:nowrap}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{padding:8px 6px;text-align:right;border-top:1px solid var(--line);white-space:nowrap;font-size:14px}
+th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--panel)}
+thead th{border-top:0;color:var(--muted);font-weight:600}
+.sale{display:grid;grid-template-columns:1fr auto;gap:4px 10px;padding:12px 0;border-top:1px solid var(--line)}
+.sale:first-of-type{border-top:0}
+.sale .acts{grid-column:1/-1;display:flex;gap:8px}
+.sale .acts button{min-height:40px;font-size:14px}
+.empty{color:var(--muted);padding:14px 0;margin:0}
+.agent{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.addrow{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:12px}
+dialog{background:var(--panel);color:var(--white);border:1px solid var(--line);border-radius:18px;padding:20px;width:min(460px,calc(100vw - 32px))}
+dialog::backdrop{background:rgba(0,0,0,.75)}
+footer{text-align:center}
+.hide{display:none!important}
+@media(max-width:560px){main{padding-block-start:28px}section{padding:16px}.grid{grid-template-columns:1fr}.grid .half{grid-column:auto}.agent{grid-template-columns:1fr 1fr}.agent input{grid-column:1/-1}.rows li{grid-template-columns:34px 1fr auto}.pts{font-size:22px}}
+</style>
+</head>
+<body>
+<main>
+  <p class="kicker">Fourth Quarter Madness</p>
+  <h1>Leaderboard</h1>
+  <p class="sub">Life sales, Nov 1 to Jan 1</p>
+
+  <section id="entry" aria-live="polite"></section>
+
+  <section>
+    <h2>Standings</h2>
+    <div class="seg" role="group" aria-label="Standings period">
+      <button data-view="day">Day</button><button data-view="week">Week</button><button data-view="all">Contest</button>
+    </div>
+    <div class="nav" id="nav">
+      <button id="prev" aria-label="Previous">‹</button><strong id="period"></strong><button id="next" aria-label="Next">›</button>
+    </div>
+    <ol class="rows" id="rows"></ol>
+    <div class="total" id="total"></div>
+    <div id="weekBox"></div>
+  </section>
+
+  <section>
+    <h2>Sales</h2>
+    <div id="sales"></div>
+  </section>
+
+  <section id="admin" class="hide"></section>
+
+  <footer><p class="note">Team tracker. Not the official FFL Madness leaderboard.</p><button class="link" id="masterBtn"></button></footer>
+</main>
+
+<dialog id="editDlg"><form id="editForm" method="dialog"></form></dialog>
+
+<script>
+const API = 'https://script.google.com/macros/s/AKfycbxHPCy3QQlOXKA9CUGA_U3KN6Lulm8g9IMa9RkjvdnFdD36JYUorBoyaU4uLvmpGiON/exec';
+const $ = (id) => document.getElementById(id);
+const esc = (v) => String(v).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num = (n) => n.toLocaleString('en-US', { maximumFractionDigits: 2 });
+const money = (n) => '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const store = {
+  get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  del(k) { try { localStorage.removeItem(k); } catch {} },
+};
+const nyToday = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date());
+const toDate = (s) => new Date(s + 'T12:00:00Z');
+const toStr = (d) => d.toISOString().slice(0, 10);
+const addDays = (s, n) => { const d = toDate(s); d.setUTCDate(d.getUTCDate() + n); return toStr(d); };
+const monday = (s) => addDays(s, -((toDate(s).getUTCDay() + 6) % 7));
+const fmt = (s, opts = { month: 'short', day: 'numeric' }) => toDate(s).toLocaleDateString('en-US', { ...opts, timeZone: 'UTC' });
+
+const S = {
+  state: null, auth: store.get('madness-auth'), view: 'week', day: null,
+  picked: null, basis: 'monthly', msg: '', err: false, confirm: null,
+};
+const isMaster = () => S.auth?.role === 'master';
+const agentOf = (id) => S.state?.agents.find((a) => a.id === id);
+const canChange = (sale) => isMaster() || S.auth?.agentId === sale.agentId;
+
+async function call(method, path, body) {
+  let result;
+  try {
+    const res = await fetch(API, {
+      method: 'POST',
+      headers: { 'content-type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ method, path, body, token: S.auth?.token }),
+    });
+    result = await res.json();
+  } catch {
+    throw new Error("Couldn't reach the leaderboard. Check your connection and try again.");
+  }
+  if (result.status === 401 && S.auth && path !== 'login' && path !== 'master') { S.auth = null; store.del('madness-auth'); }
+  if (result.status >= 400) throw new Error(result.body?.error || 'Something went wrong. Try again.');
+  return result.body;
+}
+
+async function load() {
+  try {
+    S.state = await call('GET', 'state');
+    if (!S.day) {
+      const { start, end } = S.state.contest;
+      const t = nyToday();
+      S.day = t < start ? start : t > end ? end : t;
+    }
+    renderBoard();
+    renderSales();
+    if (!document.activeElement?.closest('#entry, #admin')) { renderEntry(); renderAdmin(); }
+  } catch (e) { $('rows').innerHTML = `<li class="empty">${esc(e.message)}</li>`; }
+}
+
+function say(msg, err = false) {
+  S.msg = msg; S.err = err;
+  const el = $('msg');
+  if (el) { el.textContent = msg; el.className = err ? 'msg err' : 'msg'; }
+}
+
+function renderEntry() {
+  const box = $('entry');
+  if (!S.state) return;
+  if (!S.auth) {
+    const a = agentOf(S.picked);
+    box.innerHTML = `<h2>Who are you?</h2>
+      <div class="names">${S.state.agents.map((x) => `<button data-pick="${x.id}" aria-pressed="${x.id === S.picked}">${esc(x.name)}</button>`).join('')}</div>
+      ${a ? `<form id="loginForm">
+        <label for="pin">${a.hasPin ? 'Enter your 4-digit PIN' : 'Create a 4-digit PIN'}</label>
+        <input id="pin" inputmode="numeric" autocomplete="off" maxlength="4" pattern="[0-9]{4}" required>
+        <p class="note">${a.hasPin ? '' : 'You only do this once. This PIN keeps your sales yours.'}</p>
+        <button class="primary">${a.hasPin ? 'Sign in' : 'Create PIN'}</button></form>` : ''}
+      <p id="msg" class="msg${S.err ? ' err' : ''}">${esc(S.msg)}</p>`;
+    return;
+  }
+  const a = agentOf(S.auth.agentId);
+  const { start, end } = S.state.contest;
+  box.innerHTML = `<div class="who"><strong>${isMaster() ? 'Master account' : esc(a?.name || '')}</strong><button class="link" id="signOut">Sign out</button></div>
+    <form id="saleForm" class="grid">
+      ${isMaster() ? `<div class="full"><label for="agentId">Agent</label><select id="agentId">${S.state.agents.map((x) => `<option value="${x.id}">${esc(x.name)}</option>`).join('')}</select></div>` : ''}
+      <div class="full"><label for="carrier">Carrier</label><input id="carrier" list="carriers" autocomplete="off" required>
+        <datalist id="carriers">${[...new Set(S.state.sales.map((s) => s.carrier))].map((c) => `<option value="${esc(c)}">`).join('')}</datalist></div>
+      <div class="half"><label for="amount">Premium</label><input id="amount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0.00" required></div>
+      <div class="half"><label for="date">Sale date</label><input id="date" type="date" min="${start}" max="${end}" value="${S.day && nyToday() >= start && nyToday() <= end ? nyToday() : start}" required></div>
+      <div class="full"><label id="basisL">This premium is</label><div class="seg" role="group" aria-labelledby="basisL">
+        <button type="button" data-basis="monthly" aria-pressed="${S.basis === 'monthly'}">Monthly</button>
+        <button type="button" data-basis="annual" aria-pressed="${S.basis === 'annual'}">Annual</button></div></div>
+      <div class="full"><div class="preview" id="preview"></div><button class="primary">Add sale</button>
+      <p id="msg" class="msg${S.err ? ' err' : ''}">${esc(S.msg)}</p>
+      <p class="note">Life only. Annuities don't score.</p></div>
+    </form>`;
+  preview();
+}
+
+function preview() {
+  const el = $('preview');
+  if (!el) return;
+  const amount = Number($('amount').value);
+  const a = agentOf(isMaster() ? $('agentId').value : S.auth.agentId);
+  if (!(amount > 0)) { el.textContent = ''; return; }
+  const ap = S.basis === 'monthly' ? amount * 12 : amount;
+  el.textContent = `${money(ap)} AP, ${num(ap * (a?.multiplier ?? 1))} points`;
+}
+
+function periodRange() {
+  const { start, end } = S.state.contest;
+  if (S.view === 'day') return [S.day, S.day];
+  if (S.view === 'week') {
+    const m = monday(S.day), e = addDays(m, 6);
+    return [m < start ? start : m, e > end ? end : e];
+  }
+  return [start, end];
+}
+
+function renderBoard() {
+  document.querySelectorAll('[data-view]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.view === S.view));
+  const [from, to] = periodRange();
+  const { start, end } = S.state.contest;
+  $('nav').classList.toggle('hide', S.view === 'all');
+  $('period').textContent = S.view === 'day' ? fmt(S.day, { weekday: 'long', month: 'short', day: 'numeric' })
+    : from === to ? fmt(from) : `${fmt(from)} to ${fmt(to)}`;
+  $('prev').disabled = from <= start;
+  $('next').disabled = to >= end;
+  const inPeriod = S.state.sales.filter((s) => s.date >= from && s.date <= to);
+  const rows = S.state.agents.map((a) => {
+    const mine = inPeriod.filter((s) => s.agentId === a.id);
+    return { a, count: mine.length, ap: mine.reduce((n, s) => n + s.apCents, 0) / 100, pts: mine.reduce((n, s) => n + s.points, 0) };
+  }).sort((x, y) => y.pts - x.pts || x.a.name.localeCompare(y.a.name));
+  let rank = 0, prev = null;
+  $('rows').innerHTML = rows.map((r, i) => {
+    if (r.pts !== prev) { rank = i + 1; prev = r.pts; }
+    return `<li class="${rank === 1 && r.pts > 0 ? 'lead' : ''}"><span class="rank">${rank}</span>
+      <span><span class="name">${esc(r.a.name)}</span>${r.a.multiplier > 1 ? `<span class="badge">${r.a.multiplier}x</span>` : ''}
+      <br><span class="meta">${r.count} ${r.count === 1 ? 'sale' : 'sales'}, ${money(r.ap)} AP</span></span>
+      <span class="pts">${num(r.pts)}<small>points</small></span></li>`;
+  }).join('');
+  const ap = rows.reduce((n, r) => n + r.ap, 0), pts = rows.reduce((n, r) => n + r.pts, 0);
+  $('total').innerHTML = `<span>Team total</span><span>${money(ap)} AP, ${num(pts)} points</span>`;
+  renderWeek(from, to);
+}
+
+function renderWeek(from, to) {
+  const box = $('weekBox');
+  if (S.view !== 'week') { box.innerHTML = ''; return; }
+  const days = [];
+  for (let d = from; d <= to; d = addDays(d, 1)) days.push(d);
+  const pts = (id, d) => S.state.sales.filter((s) => s.agentId === id && s.date === d).reduce((n, s) => n + s.points, 0);
+  box.innerHTML = `<h3>Points by day</h3><div class="scroll" tabindex="0"><table><thead><tr><th>Agent</th>${days.map((d) => `<th>${fmt(d, { weekday: 'short' })} ${toDate(d).getUTCDate()}</th>`).join('')}</tr></thead>
+    <tbody>${S.state.agents.map((a) => `<tr><td>${esc(a.name)}</td>${days.map((d) => `<td>${pts(a.id, d) ? num(pts(a.id, d)) : '0'}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+}
+
+function renderSales() {
+  const [from, to] = periodRange();
+  const list = S.state.sales.filter((s) => s.date >= from && s.date <= to)
+    .sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt));
+  $('sales').innerHTML = list.length ? list.map((s) => `<div class="sale">
+      <span><span class="name">${esc(agentOf(s.agentId)?.name || 'Removed agent')}</span><br><span class="meta">${esc(s.carrier)}, ${fmt(s.date)}</span></span>
+      <span class="pts">${num(s.points)}<small>${money(s.apCents / 100)} AP</small></span>
+      ${canChange(s) ? `<div class="acts"><button data-edit="${s.id}">Edit</button>
+        <button class="danger" data-del="${s.id}">${S.confirm === s.id ? 'Tap again to delete' : 'Delete'}</button></div>` : ''}
+    </div>`).join('') : '<p class="empty">No sales in this period yet.</p>';
+  $('masterBtn').textContent = S.auth ? '' : 'Master login';
+  $('masterBtn').classList.toggle('hide', !!S.auth);
+}
+
+function renderAdmin() {
+  const box = $('admin');
+  box.classList.toggle('hide', !isMaster());
+  if (!isMaster()) return;
+  box.innerHTML = `<h2>Master controls</h2>
+    ${S.state.agents.map((a) => `<div class="agent" data-agent="${a.id}">
+      <input aria-label="Name for ${esc(a.name)}" value="${esc(a.name)}" data-rename="${a.id}">
+      <select aria-label="Points for ${esc(a.name)}" data-mult="${a.id}"><option value="1"${a.multiplier === 1 ? ' selected' : ''}>1x</option><option value="1.5"${a.multiplier === 1.5 ? ' selected' : ''}>1.5x</option></select>
+      <span><button data-reset="${a.id}">Reset PIN</button> <button class="danger" data-remove="${a.id}">Remove</button></span>
+    </div>`).join('')}
+    <form id="addAgent" class="addrow"><input id="newName" aria-label="New agent name" placeholder="Add an agent" required><button>Add</button></form>
+    <p id="adminMsg" class="msg"></p>`;
+}
+
+function openEdit(s) {
+  const form = $('editForm');
+  form.innerHTML = `<h2>Edit sale</h2><div class="grid">
+    ${isMaster() ? `<div class="full"><label for="eAgent">Agent</label><select id="eAgent">${S.state.agents.map((a) => `<option value="${a.id}"${a.id === s.agentId ? ' selected' : ''}>${esc(a.name)}</option>`).join('')}</select></div>` : ''}
+    <div class="full"><label for="eCarrier">Carrier</label><input id="eCarrier" value="${esc(s.carrier)}" required></div>
+    <div class="half"><label for="eAmount">Premium</label><input id="eAmount" type="number" step="0.01" min="0.01" value="${s.amount}" required></div>
+    <div class="half"><label for="eBasis">This premium is</label><select id="eBasis"><option value="monthly"${s.basis === 'monthly' ? ' selected' : ''}>Monthly</option><option value="annual"${s.basis === 'annual' ? ' selected' : ''}>Annual</option></select></div>
+    <div class="full"><label for="eDate">Sale date</label><input id="eDate" type="date" min="${S.state.contest.start}" max="${S.state.contest.end}" value="${s.date}" required></div>
+    <div class="full"><button class="primary" value="save">Save changes</button><button type="button" class="link" id="eCancel">Cancel</button><p class="msg err" id="eMsg"></p></div></div>`;
+  $('eCancel').onclick = () => $('editDlg').close();
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await call('PATCH', 'sales/' + s.id, {
+        carrier: $('eCarrier').value, amount: Number($('eAmount').value), basis: $('eBasis').value, date: $('eDate').value,
+        ...(isMaster() ? { agentId: $('eAgent').value } : {}),
+      });
+      $('editDlg').close();
+      await load();
+    } catch (err) { $('eMsg').textContent = err.message; }
+  };
+  $('editDlg').showModal();
+}
+
+function signIn(auth) {
+  S.auth = auth; store.set('madness-auth', auth); S.msg = ''; S.err = false; S.picked = null;
+  renderEntry(); renderAdmin(); renderSales();
+  if (auth.role === 'agent') store.set('madness-last', auth.agentId);
+}
+
+document.addEventListener('click', async (e) => {
+  const t = e.target.closest('button');
+  if (!t) return;
+  if (t.dataset.pick) { S.picked = t.dataset.pick; S.msg = ''; renderEntry(); $('pin')?.focus(); }
+  if (t.dataset.basis) { S.basis = t.dataset.basis; document.querySelectorAll('[data-basis]').forEach((b) => b.setAttribute('aria-pressed', b === t)); preview(); }
+  if (t.dataset.view) { S.view = t.dataset.view; renderBoard(); renderSales(); }
+  if (t.id === 'prev' || t.id === 'next') {
+    const dir = t.id === 'next' ? 1 : -1;
+    if (S.view === 'day') S.day = addDays(S.day, dir);
+    else { const [from, to] = periodRange(); S.day = dir > 0 ? addDays(to, 1) : addDays(from, -1); }
+    renderBoard(); renderSales();
+  }
+  if (t.id === 'signOut') { S.auth = null; store.del('madness-auth'); S.msg = ''; renderEntry(); renderAdmin(); renderSales(); }
+  if (t.id === 'masterBtn') {
+    $('entry').innerHTML = `<h2>Master login</h2><form id="masterForm"><label for="mPin">Master PIN</label><input id="mPin" type="password" autocomplete="off" required>
+      <button class="primary" style="margin-top:14px">Sign in</button></form><p id="msg" class="msg"></p>`;
+    $('entry').scrollIntoView(); $('mPin').focus();
+  }
+  if (t.dataset.edit) openEdit(S.state.sales.find((s) => s.id === t.dataset.edit));
+  if (t.dataset.del) {
+    if (S.confirm !== t.dataset.del) { S.confirm = t.dataset.del; renderSales(); return; }
+    S.confirm = null;
+    try { await call('DELETE', 'sales/' + t.dataset.del); await load(); } catch (err) { say(err.message, true); }
+  }
+  const adminAct = async (fn, done) => {
+    try { await fn(); await load(); renderAdmin(); if ($('adminMsg')) $('adminMsg').textContent = done; }
+    catch (err) { if ($('adminMsg')) { $('adminMsg').textContent = err.message; $('adminMsg').className = 'msg err'; } }
+  };
+  if (t.dataset.reset) adminAct(() => call('POST', `agents/${t.dataset.reset}/reset-pin`, {}), 'PIN reset. They can create a new one.');
+  if (t.dataset.remove) adminAct(() => call('DELETE', 'agents/' + t.dataset.remove), 'Agent removed.');
+});
+
+document.addEventListener('change', async (e) => {
+  const t = e.target;
+  const save = async (id, data) => {
+    try { await call('PUT', 'agents/' + id, data); await load(); renderAdmin(); $('adminMsg').textContent = 'Saved.'; }
+    catch (err) { $('adminMsg').textContent = err.message; $('adminMsg').className = 'msg err'; }
+  };
+  if (t.dataset.rename) save(t.dataset.rename, { name: t.value });
+  if (t.dataset.mult) save(t.dataset.mult, { multiplier: Number(t.value) });
+  if (t.id === 'agentId') preview();
+});
+document.addEventListener('input', (e) => { if (e.target.id === 'amount') preview(); });
+
+document.addEventListener('submit', async (e) => {
+  const f = e.target;
+  if (f.id === 'editForm') return;
+  e.preventDefault();
+  const btn = f.querySelector('button:not([type=button])');
+  btn.disabled = true;
+  try {
+    if (f.id === 'loginForm') {
+      const a = agentOf(S.picked);
+      const r = await call('POST', 'login', { agentId: S.picked, pin: $('pin').value, create: !a.hasPin });
+      signIn({ token: r.token, role: r.role, agentId: r.agentId });
+      await load();
+    }
+    if (f.id === 'masterForm') {
+      const r = await call('POST', 'master', { pin: $('mPin').value });
+      signIn({ token: r.token, role: 'master' });
+      await load();
+    }
+    if (f.id === 'saleForm') {
+      await call('POST', 'sales', {
+        carrier: $('carrier').value, amount: Number($('amount').value), basis: S.basis, date: $('date').value,
+        ...(isMaster() ? { agentId: $('agentId').value } : {}),
+      });
+      const date = $('date').value;
+      f.reset();
+      $('date').value = date;
+      preview();
+      say('Sale added.');
+      await load();
+      $('carrier').focus();
+    }
+    if (f.id === 'addAgent') {
+      await call('POST', 'agents', { name: $('newName').value });
+      await load(); renderAdmin();
+    }
+  } catch (err) { say(err.message, true); if (f.id === 'addAgent') $('adminMsg').textContent = err.message; }
+  finally { btn.disabled = false; }
+});
+
+load();
+setInterval(() => { if (!document.hidden && !$('editDlg').open) load(); }, 60000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden && S.state) load(); });
+</script>
+</body>
+</html>
