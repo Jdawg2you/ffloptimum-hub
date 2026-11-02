@@ -3,21 +3,23 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Madness Leaderboard</title>
+<title>The Four Commandments</title>
 <meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;900&family=Bangers&display=swap" rel="stylesheet">
 <style>
 :root{color-scheme:dark;--black:#000;--panel:#121216;--panel2:#1b1b21;--line:#2d2d35;--red:#e8192c;--bright:#ff3345;--deep:#7a0c17;--peach:#ffb27a;--white:#fff;--muted:#b3b3bc}
 *{box-sizing:border-box}
 body{margin:0;background:var(--black);color:var(--white);font:500 16px/1.45 Archivo,system-ui,sans-serif;min-height:100vh;
  background-image:radial-gradient(70% 420px at 50% -60px,var(--deep),transparent 100%),linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:100% 100%,48px 48px,48px 48px;background-repeat:no-repeat,repeat,repeat}
 main{max-width:860px;margin:0 auto;padding-block:40px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-h1{margin:0;text-align:center;font-weight:900;font-size:min(calc((100vw - 32px)/8.4),98px);line-height:1;letter-spacing:-.01em;text-transform:uppercase;
- background:linear-gradient(#fff 20%,#ff5a68 95%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 22px rgba(232,25,44,.55))}
-.kicker{text-align:center;margin:0 0 8px;font-weight:700;font-size:18px;color:var(--white)}
-.sub{text-align:center;color:var(--peach);font-weight:700;margin:12px 0 28px}
+.madness{margin:0;text-align:center;font:400 min(calc((100vw - 32px)/6.4),112px)/.95 Bangers,Impact,sans-serif;letter-spacing:.03em;text-transform:uppercase;color:var(--white);text-shadow:4px 4px 0 var(--deep)}
+.madness span{display:block;font-size:1.32em;color:var(--bright);text-shadow:4px 4px 0 var(--white),0 0 28px rgba(232,25,44,.7)}
+.cross{display:block;width:clamp(48px,11vw,72px);height:auto;margin:18px auto 10px;filter:drop-shadow(0 0 14px rgba(232,25,44,.85))}
+h1{margin:0;text-align:center;font-weight:900;font-size:min(calc((100vw - 32px)/12.6),62px);line-height:1.05;letter-spacing:-.01em;text-transform:uppercase;
+ background:linear-gradient(#fff 20%,#ff5a68 95%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{text-align:center;color:var(--peach);font-weight:700;margin:10px 0 28px}
 section{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;margin-bottom:20px}
 h2{margin:0 0 14px;font-size:22px;font-weight:900}
 h3{margin:18px 0 8px;font-size:16px;font-weight:700}
@@ -80,11 +82,12 @@ footer{text-align:center}
 </head>
 <body>
 <main>
-  <p class="kicker">Fourth Quarter Madness</p>
-  <h1>Leaderboard</h1>
-  <p class="sub">Life sales, Nov 1 to Jan 1</p>
+  <p class="madness">Fourth Quarter <span>Madness</span></p>
+  <svg class="cross" viewBox="0 0 60 84" role="img" aria-label="Cross"><path d="M23 2h14v20h21v14H37v46H23V36H2V22h21z" fill="#fff" stroke="#e8192c" stroke-width="3"/></svg>
+  <h1>The Four Commandments</h1>
+  <p class="sub">Team leaderboard. Life sales, Nov 1 to Jan 1</p>
 
-  <section id="entry" aria-live="polite"></section>
+  <section id="entry" class="hide" aria-live="polite"></section>
 
   <section>
     <h2>Standings</h2>
@@ -106,7 +109,7 @@ footer{text-align:center}
 
   <section id="admin" class="hide"></section>
 
-  <footer><p class="note">Team tracker. Not the official FFL Madness leaderboard.</p><button class="link" id="masterBtn"></button></footer>
+  <footer><p class="note">Team tracker. Not the official FFL Madness leaderboard.</p><button class="link" id="teamBtn">Team sign in</button> <button class="link" id="masterBtn">Master login</button></footer>
 </main>
 
 <dialog id="editDlg"><form id="editForm" method="dialog"></form></dialog>
@@ -131,7 +134,7 @@ const fmt = (s, opts = { month: 'short', day: 'numeric' }) => toDate(s).toLocale
 
 const S = {
   state: null, auth: store.get('madness-auth'), view: 'week', day: null,
-  picked: null, basis: 'monthly', msg: '', err: false, confirm: null,
+  panel: null, picked: null, basis: 'monthly', msg: '', err: false, confirm: null,
 };
 const isMaster = () => S.auth?.role === 'master';
 const agentOf = (id) => S.state?.agents.find((a) => a.id === id);
@@ -177,18 +180,28 @@ function say(msg, err = false) {
 function renderEntry() {
   const box = $('entry');
   if (!S.state) return;
-  if (!S.auth) {
+  box.classList.toggle('hide', !S.auth && !S.panel);
+  $('teamBtn').classList.toggle('hide', !!S.auth || !!S.panel);
+  $('masterBtn').classList.toggle('hide', !!S.auth || !!S.panel);
+  if (!S.auth && S.panel === 'master') {
+    box.innerHTML = `<h2>Master login</h2><form id="masterForm"><label for="mPin">Master PIN</label><input id="mPin" type="password" autocomplete="off" required>
+      <button class="primary" style="margin-top:14px">Sign in</button></form><p id="msg" class="msg${S.err ? ' err' : ''}">${esc(S.msg)}</p><button class="link" id="closePanel">Cancel</button>`;
+    return;
+  }
+  if (!S.auth && S.panel === 'team') {
     const a = agentOf(S.picked);
-    box.innerHTML = `<h2>Who are you?</h2>
+    box.innerHTML = `<h2>Team sign in</h2>
       <div class="names">${S.state.agents.map((x) => `<button data-pick="${x.id}" aria-pressed="${x.id === S.picked}">${esc(x.name)}</button>`).join('')}</div>
       ${a ? `<form id="loginForm">
+        ${a.hasPin ? '' : `<label for="code">Setup code from Jesse</label><input id="code" inputmode="numeric" autocomplete="off" maxlength="6" required style="margin-bottom:14px">`}
         <label for="pin">${a.hasPin ? 'Enter your 4-digit PIN' : 'Create a 4-digit PIN'}</label>
         <input id="pin" inputmode="numeric" autocomplete="off" maxlength="4" pattern="[0-9]{4}" required>
         <p class="note">${a.hasPin ? '' : 'You only do this once. This PIN keeps your sales yours.'}</p>
         <button class="primary">${a.hasPin ? 'Sign in' : 'Create PIN'}</button></form>` : ''}
-      <p id="msg" class="msg${S.err ? ' err' : ''}">${esc(S.msg)}</p>`;
+      <p id="msg" class="msg${S.err ? ' err' : ''}">${esc(S.msg)}</p><button class="link" id="closePanel">Cancel</button>`;
     return;
   }
+  if (!S.auth) { box.innerHTML = ''; return; }
   const a = agentOf(S.auth.agentId);
   const { start, end } = S.state.contest;
   box.innerHTML = `<div class="who"><strong>${isMaster() ? 'Master account' : esc(a?.name || '')}</strong><button class="link" id="signOut">Sign out</button></div>
@@ -275,8 +288,6 @@ function renderSales() {
       ${canChange(s) ? `<div class="acts"><button data-edit="${s.id}">Edit</button>
         <button class="danger" data-del="${s.id}">${S.confirm === s.id ? 'Tap again to delete' : 'Delete'}</button></div>` : ''}
     </div>`).join('') : '<p class="empty">No sales in this period yet.</p>';
-  $('masterBtn').textContent = S.auth ? '' : 'Master login';
-  $('masterBtn').classList.toggle('hide', !!S.auth);
 }
 
 function renderAdmin() {
@@ -318,7 +329,7 @@ function openEdit(s) {
 }
 
 function signIn(auth) {
-  S.auth = auth; store.set('madness-auth', auth); S.msg = ''; S.err = false; S.picked = null;
+  S.auth = auth; store.set('madness-auth', auth); S.msg = ''; S.err = false; S.picked = null; S.panel = null;
   renderEntry(); renderAdmin(); renderSales();
   if (auth.role === 'agent') store.set('madness-last', auth.agentId);
 }
@@ -326,7 +337,9 @@ function signIn(auth) {
 document.addEventListener('click', async (e) => {
   const t = e.target.closest('button');
   if (!t) return;
-  if (t.dataset.pick) { S.picked = t.dataset.pick; S.msg = ''; renderEntry(); $('pin')?.focus(); }
+  if (t.dataset.pick) { S.picked = t.dataset.pick; S.msg = ''; renderEntry(); ($('code') || $('pin'))?.focus(); }
+  if (t.id === 'teamBtn') { S.panel = 'team'; S.msg = ''; renderEntry(); $('entry').scrollIntoView(); }
+  if (t.id === 'closePanel') { S.panel = null; S.picked = null; S.msg = ''; renderEntry(); }
   if (t.dataset.basis) { S.basis = t.dataset.basis; document.querySelectorAll('[data-basis]').forEach((b) => b.setAttribute('aria-pressed', b === t)); preview(); }
   if (t.dataset.view) { S.view = t.dataset.view; renderBoard(); renderSales(); }
   if (t.id === 'prev' || t.id === 'next') {
@@ -335,10 +348,9 @@ document.addEventListener('click', async (e) => {
     else { const [from, to] = periodRange(); S.day = dir > 0 ? addDays(to, 1) : addDays(from, -1); }
     renderBoard(); renderSales();
   }
-  if (t.id === 'signOut') { S.auth = null; store.del('madness-auth'); S.msg = ''; renderEntry(); renderAdmin(); renderSales(); }
+  if (t.id === 'signOut') { S.auth = null; S.panel = null; store.del('madness-auth'); S.msg = ''; renderEntry(); renderAdmin(); renderSales(); }
   if (t.id === 'masterBtn') {
-    $('entry').innerHTML = `<h2>Master login</h2><form id="masterForm"><label for="mPin">Master PIN</label><input id="mPin" type="password" autocomplete="off" required>
-      <button class="primary" style="margin-top:14px">Sign in</button></form><p id="msg" class="msg"></p>`;
+    S.panel = 'master'; S.msg = ''; renderEntry();
     $('entry').scrollIntoView(); $('mPin').focus();
   }
   if (t.dataset.edit) openEdit(S.state.sales.find((s) => s.id === t.dataset.edit));
@@ -376,7 +388,7 @@ document.addEventListener('submit', async (e) => {
   try {
     if (f.id === 'loginForm') {
       const a = agentOf(S.picked);
-      const r = await call('POST', 'login', { agentId: S.picked, pin: $('pin').value, create: !a.hasPin });
+      const r = await call('POST', 'login', { agentId: S.picked, pin: $('pin').value, create: !a.hasPin, code: $('code')?.value });
       signIn({ token: r.token, role: r.role, agentId: r.agentId });
       await load();
     }
