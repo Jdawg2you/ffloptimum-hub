@@ -193,11 +193,10 @@ function renderEntry() {
     box.innerHTML = `<h2>Team sign in</h2>
       <div class="names">${S.state.agents.map((x) => `<button data-pick="${x.id}" aria-pressed="${x.id === S.picked}">${esc(x.name)}</button>`).join('')}</div>
       ${a ? `<form id="loginForm">
-        ${a.hasPin ? '' : `<label for="code">Setup code from Jesse</label><input id="code" inputmode="numeric" autocomplete="off" maxlength="6" required style="margin-bottom:14px">`}
-        <label for="pin">${a.hasPin ? 'Enter your 4-digit PIN' : 'Create a 4-digit PIN'}</label>
-        <input id="pin" inputmode="numeric" autocomplete="off" maxlength="4" pattern="[0-9]{4}" required>
-        <p class="note">${a.hasPin ? '' : 'You only do this once. This PIN keeps your sales yours.'}</p>
-        <button class="primary">${a.hasPin ? 'Sign in' : 'Create PIN'}</button></form>` : ''}
+        <label for="pin">Enter your PIN</label>
+        <input id="pin" inputmode="numeric" autocomplete="off" maxlength="6" pattern="[0-9]{4,6}" required>
+        <p class="note">Don't have one? Ask Jesse.</p>
+        <button class="primary">Sign in</button></form>` : ''}
       <p id="msg" class="msg${S.err ? ' err' : ''}">${esc(S.msg)}</p><button class="link" id="closePanel">Cancel</button>`;
     return;
   }
@@ -388,7 +387,7 @@ document.addEventListener('submit', async (e) => {
   try {
     if (f.id === 'loginForm') {
       const a = agentOf(S.picked);
-      const r = await call('POST', 'login', { agentId: S.picked, pin: $('pin').value, create: !a.hasPin, code: $('code')?.value });
+      const r = await call('POST', 'login', { agentId: S.picked, pin: $('pin').value, create: !a.hasPin, code: $('pin').value });
       signIn({ token: r.token, role: r.role, agentId: r.agentId });
       await load();
     }
