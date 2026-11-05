@@ -193,9 +193,9 @@ function renderEntry() {
     box.innerHTML = `<h2>Team sign in</h2>
       <div class="names">${S.state.agents.map((x) => `<button data-pick="${x.id}" aria-pressed="${x.id === S.picked}">${esc(x.name)}</button>`).join('')}</div>
       ${a ? `<form id="loginForm">
-        <label for="pin">Enter your PIN</label>
-        <input id="pin" inputmode="numeric" autocomplete="off" maxlength="6" pattern="[0-9]{4,6}" required>
-        <p class="note">Don't have one? Ask Jesse.</p>
+        <label for="pin">${a.open ? 'Pick any 4 digits as your PIN' : 'Enter your PIN'}</label>
+        <input id="pin" inputmode="numeric" autocomplete="off" maxlength="${a.open ? 4 : 6}" pattern="[0-9]{${a.open ? '4' : '4,6'}}" required>
+        <p class="note">${a.open ? "You'll use this PIN from now on." : "Don't have one? Ask Jesse."}</p>
         <button class="primary">Sign in</button></form>` : ''}
       <p id="msg" class="msg${S.err ? ' err' : ''}">${esc(S.msg)}</p><button class="link" id="closePanel">Cancel</button>`;
     return;
